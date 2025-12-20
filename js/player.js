@@ -479,13 +479,11 @@ function iniciarVisualizer() {
             for(let i = 0; i < bufferLength; i++) {
                 let barHeight = dataArray[i] / 2;
                 ctxMini.fillStyle = `rgba(255, 255, 255, 0.4)`;
-                // fillRect(x, y, largura, altura)
                 ctxMini.fillRect(x, canvasMini.height - barHeight, barWidth - 1, barHeight);
                 x += barWidth;
             }
         }
 
-        // 2. Full Player (Visual "Suave e Belo")
         if(ctxFull && document.getElementById('full-player').classList.contains('active')) {
             ctxFull.clearRect(0, 0, canvasFull.width, canvasFull.height);
             
@@ -493,20 +491,14 @@ function iniciarVisualizer() {
             let x = 0;
             
             for(let i = 0; i < bufferLength; i++) {
-                // Escala a altura para não ficar agressivo demais
-                // (dataArray[i] / 255) dá uma porcentagem de 0 a 1
                 let barHeight = (dataArray[i] / 255) * canvasFull.height * 0.8; 
                 
-                // MUDANÇA 2: Gradiente Bonito
-                // Cria um degradê que vai do chão (rosa forte) até o topo da barra (rosa claro/transparente)
                 let gradient = ctxFull.createLinearGradient(0, canvasFull.height, 0, canvasFull.height - barHeight);
-                gradient.addColorStop(0, '#d81b60');       // Base Rosa Choque
-                gradient.addColorStop(1, 'rgba(255, 64, 129, 0.3)'); // Topo suave
+                gradient.addColorStop(0, '#d81b60');
+                gradient.addColorStop(1, 'rgba(255, 64, 129, 0.3)');
 
                 ctxFull.fillStyle = gradient;
                 
-                // Desenha a barra com cantos levemente arredondados (opcional, simula suavidade)
-                // Se o navegador suportar roundRect, fica lindo. Se não, usa fillRect normal.
                 if (ctxFull.roundRect) {
                     ctxFull.beginPath();
                     ctxFull.roundRect(x, canvasFull.height - barHeight, barWidth - 2, barHeight, [5, 5, 0, 0]);
@@ -524,7 +516,6 @@ function iniciarVisualizer() {
 
 audio.addEventListener('play', () => { if(!audioContext) iniciarVisualizer(); });
 
-// --- UI UTILS ---
 function formatarTempo(segundos) {
     const min = Math.floor(segundos / 60);
     const sec = Math.floor(segundos % 60);
@@ -547,7 +538,6 @@ function toggleLyrics() {
     document.getElementById('queue-panel').classList.remove('open');
 }
 
-// Fechar clicar fora
 document.addEventListener('click', (e) => {
     const queuePanel = document.getElementById('queue-panel');
     const lyricsPanel = document.getElementById('lyrics-panel');
@@ -566,13 +556,10 @@ document.addEventListener('click', (e) => {
     const queuePanel = document.getElementById('queue-panel');
     const lyricsPanel = document.getElementById('lyrics-panel');
     
-    // Botões
     const btnFila = document.getElementById('btn-fila');
     const btnLyrics = document.getElementById('btn-lyrics');
-    const btnSearch = document.getElementById('btn-search'); // O botão da Lupa!
+    const btnSearch = document.getElementById('btn-search');
 
-    // 1. Lógica da FILA (Protege o clique no botão Fila E no botão Search)
-    // Se o clique NÃO foi dentro do painel... E NÃO foi no botão fila... E NÃO foi na lupa... ENTÃO fecha.
     if (queuePanel.classList.contains('open') && 
         !queuePanel.contains(e.target) && 
         !btnFila.contains(e.target) &&
@@ -581,7 +568,6 @@ document.addEventListener('click', (e) => {
         toggleFila();
     }
 
-    // 2. Lógica da LETRA
     if (lyricsPanel.classList.contains('open') && 
         !lyricsPanel.contains(e.target) && 
         !btnLyrics.contains(e.target)) {

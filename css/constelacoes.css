@@ -1,0 +1,122 @@
+/* --- CONSTELAÇÕES E ESPAÇO (ATUALIZADO) --- */
+
+/* Container que segura os planetas */
+#grid-constelacoes {
+    position: relative;
+    width: 100%;
+    height: 70vh; /* Ocupa uma boa altura da tela */
+    margin-top: 20px;
+}
+
+/* Animação de Piscar */
+@keyframes piscar {
+    0% { opacity: 0.2; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1.2); box-shadow: 0 0 10px white; }
+    100% { opacity: 0.2; transform: scale(0.8); }
+}
+
+/* As Estrelinhas de Fundo */
+.estrela-fundo {
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+    animation: piscar infinite ease-in-out;
+    cursor: pointer; /* Indica que é clicável */
+    z-index: 1;
+}
+
+/* Mensagem Flutuante (Toast) ao clicar na estrela */
+.star-message {
+    position: fixed;
+    background: rgba(255, 255, 255, 0.95);
+    color: #d81b60;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 0.9rem;
+    pointer-events: none;
+    animation: subirDesaparecer 2.5s forwards;
+    z-index: 999;
+    box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+}
+
+@keyframes subirDesaparecer {
+    0% { opacity: 0; transform: translateY(0) scale(0.8); }
+    15% { opacity: 1; transform: translateY(-10px) scale(1); }
+    100% { opacity: 0; transform: translateY(-60px); }
+}
+
+/* O Item (Planeta/Mapa) na tela */
+.item-constelacao {
+    position: absolute; /* ISSO PERMITE ESPALHAR ELES */
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    cursor: pointer;
+    background: #000;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 0 20px rgba(216, 27, 96, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    z-index: 10;
+}
+
+.item-constelacao:hover {
+    transform: scale(1.3);
+    border-color: #ff4081;
+    box-shadow: 0 0 50px rgba(216, 27, 96, 0.9);
+    z-index: 20;
+}
+
+.item-constelacao img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    opacity: 0.85;
+    transition: opacity 0.3s;
+}
+
+.item-constelacao:hover img {
+    opacity: 1;
+}
+
+/* Título flutuante embaixo do planeta */
+.item-constelacao span {
+    position: absolute;
+    bottom: -35px;
+    width: 180px;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    color: white;
+    font-size: 0.9rem;
+    text-shadow: 0 2px 4px black;
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.item-constelacao:hover span {
+    opacity: 1;
+    font-weight: bold;
+    color: #f8bbd0;
+}
+
+/* CORREÇÃO DOS CLIQUES (IMPORTANTE) */
+
+/* Garante que botões, formulários e planetas recebam o clique */
+#btn-add-constelacao, 
+#form-constelacao, 
+.item-constelacao,
+#modal-constelacao button {
+    pointer-events: auto !important;
+}
+
+/* Garante que os inputs dentro do formulário funcionem */
+#form-constelacao input, 
+#form-constelacao textarea, 
+#form-constelacao button {
+    pointer-events: auto !important;
+}

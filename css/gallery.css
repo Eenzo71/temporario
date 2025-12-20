@@ -1,0 +1,156 @@
+/* LINHA DO TEMPO (MUSEU) - VERSÃO ROMÂNTICA & LIMPA */
+.timeline {
+    position: relative;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 40px 0;
+}
+
+/* A linha vertical central */
+.timeline::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    background-color: #f8bbd0; /* Rosa claro */
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    margin-left: -2px;
+    border-radius: 2px;
+    box-shadow: 0 0 10px rgba(216, 27, 96, 0.2);
+}
+
+.timeline-item {
+    padding: 10px 40px;
+    position: relative;
+    background-color: inherit;
+    width: 50%;
+    box-sizing: border-box;
+}
+
+/* Bolinha na linha (Agora é um Coraçãozinho) */
+.timeline-item::after {
+    content: '❤️'; /* Usando emoji de coração ou pode ser uma bolinha rosa */
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    right: -13px;
+    background-color: #fff;
+    border: 2px solid #d81b60;
+    top: 20px;
+    border-radius: 50%;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.left { left: 0; }
+.right { left: 50%; }
+.right::after { left: -13px; }
+
+/* O Cartão do Conteúdo */
+.content {
+    padding: 20px;
+    background-color: white;
+    position: relative;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border: 1px solid #ffcdd2;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    
+    /* Isso garante que os itens fiquem um embaixo do outro sem encavalar */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Alinha tudo à esquerda */
+}
+
+.content:hover {
+    transform: scale(1.02); /* Leve zoom ao passar o mouse */
+    box-shadow: 0 10px 25px rgba(216, 27, 96, 0.2);
+    border-color: #d81b60;
+}
+
+/* Título e Data */
+.content h2 {
+    color: #d81b60;
+    font-size: 1.4rem;
+    margin: 0 0 10px 0; /* Remove margem do topo, usa a margem da data */
+    font-family: 'Georgia', serif;
+    line-height: 1.2;
+}
+
+.content .date {
+    /* Removemos o absolute! Agora ela ocupa espaço real */
+    position: relative; 
+    display: inline-block;
+    font-weight: bold;
+    color: #888;
+    font-size: 0.85rem;
+    background: #f0f0f0;
+    padding: 4px 10px;
+    border-radius: 10px;
+    margin-bottom: 10px; /* Empurra o título para baixo */
+}
+
+/* Botões de Ação (No topo direito, fixos) */
+.museu-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+    z-index: 10; /* Garante que fique acima de tudo */
+}
+
+.btn-mini-action {
+    background: #fff;
+    border: 1px solid #d81b60;
+    color: #d81b60;
+    border-radius: 50%; /* Botões redondos */
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.btn-mini-action:hover {
+    background: #d81b60;
+    color: white;
+    transform: scale(1.1);
+}
+
+/* Texto Resumido (Mágica dos ...) */
+.museu-desc-preview {
+    color: #555;
+    margin-top: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3; /* Mostra no máximo 3 linhas */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.5;
+}
+
+/* Imagem Preview */
+.museu-img-preview {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-top: 10px;
+    border: 1px solid #eee;
+}
+
+/* Responsividade */
+@media screen and (max-width: 600px) {
+    .timeline::after { left: 31px; }
+    .timeline-item { width: 100%; padding-left: 70px; padding-right: 25px; }
+    .timeline-item::after { left: 18px; }
+    .right { left: 0%; }
+}

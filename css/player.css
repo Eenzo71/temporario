@@ -1,0 +1,551 @@
+/* --- css/player.css (TEMA DARK - CORRIGIDO) --- */
+
+/* --- 1. MINI PLAYER (CÁPSULA) --- */
+.mini-player-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    left: auto;
+    width: auto;
+    min-width: 400px;
+    max-width: 90vw;
+    height: 65px;
+    
+    background: rgba(18, 18, 18, 0.95); 
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    border-radius: 50px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px 0 8px;
+    z-index: 9999;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    color: white; 
+}
+
+.mini-player-container:hover {
+    box-shadow: 0 15px 50px rgba(216, 27, 96, 0.4); 
+    transform: translateY(-2px);
+    border-color: rgba(216, 27, 96, 0.5);
+}
+
+.mini-content {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    justify-content: space-between;
+    z-index: 2;
+    gap: 15px;
+}
+
+/* Info da Música (Mini) */
+.mini-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    min-width: 140px;
+    flex: 1; /* Ocupa o espaço disponível */
+}
+
+.mini-info img {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.2);
+    animation: rotate 10s linear infinite;
+    animation-play-state: paused;
+}
+.mini-player-container.playing .mini-info img { animation-play-state: running; }
+
+@keyframes rotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.mini-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.mini-text h4 { 
+    margin: 0; 
+    font-size: 13px; 
+    color: #fff; 
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+.mini-text p { margin: 0; font-size: 11px; color: #aaa; }
+
+/* Controles Mini */
+.mini-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+/* --- ESTILO GERAL DOS BOTÕES --- */
+.btn-icon {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    opacity: 0.9;
+}
+.btn-icon:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.1);
+    opacity: 1;
+}
+/* Força o tamanho dos ícones SVG para não ficarem gigantes */
+.btn-icon svg {
+    width: 24px; 
+    height: 24px;
+    fill: #fff; 
+}
+
+/* Botão Play (Rosa) */
+.btn-play-circle {
+    background: #d81b60;
+    width: 42px;
+    height: 42px;
+    padding: 0;
+    opacity: 1;
+    box-shadow: 0 0 15px rgba(216, 27, 96, 0.4);
+}
+.btn-play-circle:hover {
+    background: #ff4081;
+    transform: scale(1.05);
+    box-shadow: 0 0 25px rgba(216, 27, 96, 0.6);
+}
+.btn-play-circle svg { width: 20px; height: 20px; margin-left: 2px; }
+
+/* --- EXTRAS DO MINI PLAYER --- */
+.mini-extra {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: 10px;
+}
+
+/* CORREÇÃO DO VOLUME GIGANTE */
+.volume-container {
+    display: flex;
+    align-items: center;
+    gap: 0; /* Começa sem espaço */
+    transition: all 0.3s ease; /* Animação suave */
+    padding: 5px; /* Área de contato maior para o mouse não "escapar" */
+    border-radius: 20px;
+}
+
+/* O Ícone do Volume */
+.volume-container svg.btn-icon-small {
+    width: 20px;
+    height: 20px;
+    fill: #ccc;
+    cursor: pointer;
+    transition: fill 0.3s;
+}
+
+/* O Slider (Começa Escondido) */
+.volume-container input {
+    width: 0; /* Largura zero */
+    opacity: 0; /* Invisível */
+    height: 4px;
+    accent-color: #d81b60;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); /* Animação bem fluida */
+    margin-left: 0;
+    pointer-events: none; /* Não deixa clicar quando está invisível */
+}
+
+/* --- A MÁGICA DO HOVER --- */
+/* Quando passar o mouse no container... */
+.volume-container:hover {
+    background: rgba(255, 255, 255, 0.1); /* Fundo sutil ao passar o mouse */
+}
+
+.volume-container:hover svg.btn-icon-small {
+    fill: #fff; /* Ícone fica branco */
+}
+
+.volume-container:hover input {
+    width: 60px; /* Cresce para o tamanho normal */
+    opacity: 1; /* Fica visível */
+    margin-left: 8px; /* Cria um espacinho */
+    pointer-events: auto; /* Agora pode clicar */
+}
+
+/* Barra de Progresso (Mini) */
+.mini-progress-bar {
+    position: absolute;
+    bottom: 0;
+    left: 20px;
+    right: 20px;
+    height: 3px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    z-index: 10;
+    pointer-events: none;
+}
+
+/* Visualizer */
+#mini-visualizer {
+    position: absolute;
+    bottom: 0; left: 0; width: 100%; height: 100%;
+    pointer-events: none; opacity: 0.2; z-index: 0; border-radius: 50px;
+}
+
+
+/* --- 2. FULL PLAYER MODAL (DARK & CORRIGIDO) --- */
+.full-player-modal {
+    position: fixed;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #121212; 
+    z-index: 10000;
+    transition: top 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: white;
+}
+.full-player-modal.active { top: 0; }
+
+#dynamic-bg {
+    position: absolute;
+    top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0.4; 
+    z-index: 1;
+    transition: background 1s ease;
+}
+
+/* Container Centralizado */
+.full-player-content {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    padding: 30px;
+    max-width: 500px;
+    margin: 0 auto;
+    width: 100%;
+    box-sizing: border-box; /* Garante que padding não estoure largura */
+}
+
+/* --- HEADER DO FULL PLAYER --- */
+.fp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    margin-bottom: 20px;
+}
+.fp-header span {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #aaa;
+}
+
+/* --- ÁREA PRINCIPAL (Capa e Texto) --- */
+.fp-main {
+    flex: 1; /* Ocupa todo o espaço vertical disponível */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+}
+
+.cd-wrapper {
+    margin-bottom: 30px;
+}
+.cd-wrapper img {
+    width: 280px;  /* Capa Grande */
+    height: 280px;
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    object-fit: cover;
+}
+
+.fp-info { margin-bottom: 20px; }
+.fp-info h2 { font-size: 1.8rem; margin: 0 0 5px 0; color: white; }
+.fp-info h3 { font-size: 1.1rem; color: #aaa; margin: 0; font-weight: normal; }
+
+/* Dedicatória */
+.dedicatoria-box {
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(216, 27, 96, 0.3);
+    margin-bottom: 20px;
+    max-width: 90%;
+}
+.dedicatoria-box p { color: #ff80ab; margin: 0 0 5px 0; font-weight: bold; }
+.dedicatoria-box small { color: #ccc; font-style: italic; }
+
+/* --- ÁREA DE CONTROLES INFERIOR --- */
+.fp-controls-area {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(10px);
+    padding: 25px;
+    border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.05);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 15px; /* Espaço entre barra e botões */
+}
+
+/* Barra de Progresso Full */
+.progress-area {
+    width: 100%;
+    height: 6px;
+    background: #444;
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+}
+.progress-bar {
+    height: 100%;
+    background: #d81b60;
+    border-radius: 3px;
+    width: 0%;
+    position: relative;
+}
+/* Bolinha da barra */
+.progress-bar::after {
+    content: '';
+    position: absolute;
+    right: -6px; top: -4px;
+    width: 14px; height: 14px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.progress-area:hover .progress-bar::after { opacity: 1; }
+
+.time-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: #aaa;
+    margin-top: -10px; /* Aproxima da barra */
+}
+
+/* --- BOTÕES PRINCIPAIS (ALINHAMENTO) --- */
+.main-buttons {
+    display: flex;
+    justify-content: space-between; /* Espalha os botões */
+    align-items: center;
+    padding: 0 10px;
+}
+
+/* Botões do Full Player (Um pouco maiores) */
+.main-buttons .btn-icon svg {
+    width: 28px;
+    height: 28px;
+}
+
+.btn-play-big {
+    width: 70px;
+    height: 70px;
+    background: #d81b60;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 5px 20px rgba(216, 27, 96, 0.4);
+}
+.btn-play-big:hover { transform: scale(1.1); background: #ff4081; }
+.btn-play-big svg { width: 30px; height: 30px; margin-left: 4px; fill: white; }
+
+/* Botão Letra */
+.bottom-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+.btn-icon.active svg { fill: #d81b60; filter: drop-shadow(0 0 8px rgba(216,27,96,0.6)); }
+
+/* --- PAINEIS LATERAIS --- */
+.side-panel {
+    position: absolute;
+    bottom: -100%; left: 0; width: 100%; height: 75%;
+    background: #1e1e1e;
+    border-radius: 25px 25px 0 0;
+    box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+    z-index: 20;
+    transition: bottom 0.4s cubic-bezier(0.2, 1, 0.3, 1);
+    padding: 30px;
+    border-top: 1px solid #333;
+    color: white;
+    box-sizing: border-box;
+}
+.side-panel.open { bottom: 0; }
+.side-panel h3 { color: #d81b60; border-bottom: 1px solid #333; padding-bottom: 15px; margin-top: 0; }
+
+#queue-list li {
+    display: flex; align-items: center; padding: 12px;
+    border-bottom: 1px solid #333;
+    background: transparent;
+}
+#queue-list li:hover { background: rgba(255,255,255,0.05); }
+#queue-list li img { width: 40px; height: 40px; border-radius: 5px; margin-right: 15px; }
+
+/* Responsividade Mobile */
+@media (max-width: 600px) {
+    .mini-player-container {
+        left: 10px; right: 10px; bottom: 10px;
+        min-width: unset; width: auto; 
+    }
+    .volume-container { display: none; } /* Esconde volume no celular pra economizar espaço */
+    .cd-wrapper img { width: 220px; height: 220px; }
+}
+
+/* Controles da Fila */
+.btn-upload-music {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid #d81b60;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: 0.3s;
+    font-size: 0.9rem;
+}
+.btn-upload-music:hover {
+    background: #d81b60;
+}
+
+.search-box-player {
+    position: relative;
+    width: 100%;
+}
+
+.search-box-player input {
+    background: #111;
+    border: 1px solid #333;
+    color: white;
+    padding: 10px;
+    border-radius: 8px;
+    width: 100%;
+    outline: none;
+}
+.search-box-player input:focus {
+    border-color: #d81b60;
+}
+
+/* Lista de Resultados iTunes */
+#itunes-list li {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    margin-bottom: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 1px dashed #555;
+}
+#itunes-list li:hover {
+    background: rgba(216, 27, 96, 0.2);
+    border-color: #d81b60;
+}
+#itunes-list img {
+    width: 30px; 
+    height: 30px; 
+    border-radius: 4px; 
+    margin-right: 10px;
+}
+
+/* Botão de Fechar Painéis (X) */
+.btn-close-panel {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    color: #fff; /* X branco */
+    font-size: 2rem; /* Bem grande pra acertar o dedo */
+    line-height: 1;
+    cursor: pointer;
+    z-index: 30;
+    opacity: 0.7;
+    transition: 0.3s;
+}
+
+.btn-close-panel:hover {
+    color: #d81b60; /* Fica rosa no hover */
+    opacity: 1;
+    transform: scale(1.1);
+}
+
+#full-visualizer {
+    position: absolute;
+    bottom: 0;        /* Cola o canvas no chão */
+    left: 0;
+    width: 100%;
+    height: 40%;      /* Define a altura da área do visualizer */
+    z-index: 5; 
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Nova Barra de Ações Inferior */
+.bottom-actions {
+    display: flex;
+    justify-content: space-between; /* Espalha: Letra - Volume - Fila */
+    align-items: center;
+    margin-top: 15px;
+    padding: 0 10px;
+}
+
+/* Controle de Volume do Full Player */
+.full-vol-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    width: 60%; /* Ocupa o meio */
+}
+
+.full-vol-container svg {
+    width: 20px;
+    height: 20px;
+    fill: #ccc;
+}
+
+.full-vol-container input {
+    flex: 1; /* Ocupa o resto do espaço */
+    height: 4px;
+    accent-color: #d81b60;
+    cursor: pointer;
+    background: #555;
+    border-radius: 2px;
+}
+

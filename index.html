@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nosso Cantinho ❤️</title>
+
+    <link rel="stylesheet" href="css/nav.css">
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/gallery.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/museu.css">
+    <link rel="stylesheet" href="css/constelacoes.css">
+    <link rel="stylesheet" href="css/player.css">
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+    <style>
+        #music-player-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            border-radius: 50px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 2px solid #d81b60;
+        }
+
+        .page-content {
+            display: none;
+            padding: 20px;
+            animation: fadeIn 0.5s;
+        }
+
+        .page-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="padrao">
+        <div class="brrlft">
+            <button id="btnbrrlft"><img src="imgs/menubtn.png" alt="menu"></button>
+        </div>
+        <div class="imgcntr">
+            <a href="#" onclick="navegarPara('home')"><img src="imgs/parquestand.jpg" alt="1"></a>
+            <a href="#" onclick="navegarPara('home')"><img src="imgs/niver.jpg" alt="2"></a>
+            <a href="#" onclick="navegarPara('home')"><img src="imgs/parquebrinquedo.jpg" alt="3"></a>
+        </div>
+        <div class="usuario">
+            <button id="usuarioimg"><img id="user-avatar" src="imgs/enzo-avatar.jpg" alt="Usuário"></button>
+        </div>
+    </div>
+
+    <div class="opcoesbtnbrrlft" id="menu-lateral">
+        <a href="#" onclick="navegarPara('home')">Sobre&hearts;&hearts;Nós&hearts;</a>
+        <a href="#" onclick="navegarPara('galeria')">Todas&hearts;as&hearts;Nossas&hearts;Fotos&hearts;</a>
+        <a href="#" onclick="navegarPara('lembrei')">&hearts;Lembrei D vc&hearts;</a>
+        <a href="#" onclick="navegarPara('museu')">&hearts;Museu&hearts;</a>
+        <a href="#" onclick="navegarPara('constelacoes')">&hearts;Constelações&hearts;</a>
+        <a href="#" onclick="navegarPara('em-breve', 'Dia-Week-Mês')">&hearts;dia-week-mês&hearts;</a>
+        <a href="#" onclick="navegarPara('em-breve', 'Filmes')">&hearts;Movies&hearts;</a>
+        <a href="#" onclick="navegarPara('em-breve', 'Álbuns')">&hearts;Albuns&hearts;</a>
+        <a href="#" onclick="navegarPara('em-breve', 'Citações')">&hearts;Citações&hearts;</a>
+        <a href="#" onclick="navegarPara('em-breve', 'Bate-Papo')">&hearts;Bate-Papo&hearts;</a>
+        <a class="ajustes" href="#" onclick="alert('Configurações em breve!')">&#x2699;</a>
+    </div>
+
+    <div id="app">
+        
+        <div id="page-login" class="page-content">
+            <div class="login-box" style="position:relative; transform:none; left:0; top:0; margin: 50px auto;">
+                <h2>Login do Casal</h2>
+                <form id="form-login-supabase">
+                    <div class="user-box">
+                        <input class="input" type="email" id="email" required>
+                        <label>Email</label>
+                    </div>
+                    <div class="user-box">
+                        <input class="input" type="password" id="senha" required>
+                        <label>Senha</label>
+                    </div>
+                    <a href="#" id="btn-entrar-supa">
+                        <span></span><span></span><span></span><span></span>
+                        Entrar
+                    </a>
+                </form>
+            </div>
+        </div>
+
+        <div id="page-home" class="page-content">
+            <div class="historia-wrapper">
+                <h1 class="main-title">Nossa História ❤️</h1>
+
+                <div id="toolbar-geral" class="editor-toolbar" style="display: none;">
+                    <button onclick="formatar('bold')" title="Negrito"><b>B</b></button>
+                    <button onclick="formatar('italic')" title="Itálico"><i>I</i></button>
+                    <button onclick="formatar('underline')" title="Sublinhado"><u>U</u></button>
+                    <input type="color" onchange="formatar('foreColor', this.value)" title="Cor do Texto">
+                    <select onchange="formatar('fontName', this.value)">
+                        <option value="Arial">Arial</option>
+                        <option value="Comic Sans MS">Comic Sans</option>
+                        <option value="Courier New">Courier</option>
+                        <option value="Georgia">Georgia</option>
+                    </select>
+                    <button onclick="salvarEdicaoAtual()" class="btn-save-toolbar">💾 Salvar</button>
+                    <button onclick="cancelarEdicao()" class="btn-cancel-toolbar">❌</button>
+                </div>
+
+                <div class="story-card full-width">
+                    <div class="card-header">
+                        <h3>Sobre Nós</h3>
+                        <button class="btn-edit-pencil" onclick="editarHistoria('nos')">✏️</button>
+                    </div>
+                    <div id="content-nos" class="card-body">Carregando...</div>
+                </div>
+
+                <div class="story-columns">
+                    <div class="story-card half-width">
+                        <div class="card-header">
+                            <h3>Enzo</h3>
+                            <button class="btn-edit-pencil" onclick="editarHistoria('enzo')">✏️</button>
+                        </div>
+                        <div id="content-enzo" class="card-body">Carregando...</div>
+                    </div>
+
+                    <div class="story-card half-width">
+                        <div class="card-header">
+                            <h3>Brenda</h3>
+                            <button class="btn-edit-pencil" onclick="editarHistoria('brenda')">✏️</button>
+                        </div>
+                        <div id="content-brenda" class="card-body">Carregando...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-galeria" class="page-content">
+            <h1>Nossas Fotos</h1>
+
+            <div class="gallery-controls" style="text-align: center; margin-bottom: 20px;">
+                <button id="toggle-upload-form-btn"
+                    style="padding: 10px 20px; background: #d81b60; color: white; border: none; border-radius: 5px; cursor: pointer;">
+                    Adicionar Nova Foto +
+                </button>
+            </div>
+
+            <form id="upload-form"
+                style="display: none; background: rgba(255,255,255,0.9); padding: 20px; border-radius: 10px; margin-bottom: 20px; max-width: 500px; margin-left: auto; margin-right: auto;">
+                <h3>Adicionar Nova Memória</h3>
+                <div class="form-group">
+                    <label>Escolha a foto:</label>
+                    <input type="file" id="upload-file" required accept="image/*">
+                </div>
+                <div class="form-group">
+                    <label>Descrição:</label>
+                    <textarea id="upload-descricao" rows="2" style="width: 100%;"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Lugar:</label>
+                    <input type="text" id="upload-lugar" required style="width: 100%;">
+                </div>
+                <div class="form-group">
+                    <label>Data:</label>
+                    <input type="date" id="upload-data" required style="width: 100%;">
+                </div>
+                <button type="submit" id="btn-salvar-foto"
+                    style="margin-top: 10px; background: green; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer;">Salvar
+                    Foto</button>
+            </form>
+
+            <div id="photo-grid"></div>
+        </div>
+
+        <div id="page-lembrei" class="page-content">
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #d81b60; text-shadow: 2px 2px 0 #fff;">Lembrei de Vc ❤️</h1>
+                <button id="btn-add-lembrete"
+                    style="background: #d81b60; color: white; border: none; padding: 12px 25px; border-radius: 30px; cursor: pointer; font-size: 1rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                    + Adicionar Novo
+                </button>
+            </div>
+
+            <form id="form-lembrete"
+                style="display: none; background: rgba(255,255,255,0.95); padding: 20px; border-radius: 15px; border: 2px solid #d81b60; max-width: 500px; margin: 0 auto 30px auto;">
+                <h3>O que você viu?</h3>
+
+                <div class="form-group">
+                    <label>Tipo:</label>
+                    <select id="lembrete-tipo" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+                        <option value="foto">Foto</option>
+                        <option value="video">Vídeo Curto</option>
+                        <option value="link">Link (Instagram/TikTok/Site)</option>
+                    </select>
+                </div>
+
+                <div id="campo-link" class="form-group" style="display: none;">
+                    <label>Link (URL):</label>
+                    <input type="url" id="lembrete-url" placeholder="https://..." style="width: 100%; padding: 8px;">
+                </div>
+
+                <div class="form-group">
+                    <label id="label-arquivo">Escolha o arquivo:</label>
+                    <input type="file" id="lembrete-arquivo" style="width: 100%;">
+                    <p id="msg-capa-link" style="font-size: 0.8rem; color: #666; display: none;">(Opcional) Escolha uma
+                        imagem de capa para o link</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Descrição / Por que lembrou?</label>
+                    <textarea id="lembrete-desc" rows="3" style="width: 100%; padding: 8px;"></textarea>
+                </div>
+
+                <button type="submit" id="btn-salvar-lembrete"
+                    style="background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%;">Postar</button>
+            </form>
+
+            <div id="grid-lembretes"
+                style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px;">
+            </div>
+        </div>
+
+        <div id="modal-lembrete"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+            <div
+                style="position: relative; max-width: 800px; width: 100%; background: #fff; border-radius: 10px; overflow: hidden; display: flex; flex-direction: column;">
+                <button onclick="fecharModalLembrete()"
+                    style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer;">X</button>
+
+                <div id="modal-conteudo-visual"
+                    style="background: #000; display: flex; justify-content: center; max-height: 60vh;">
+                </div>
+
+                <div style="padding: 20px;">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span id="modal-autor"
+                            style="background: #d81b60; color: white; padding: 2px 10px; border-radius: 10px; font-size: 0.8rem;">Enzo</span>
+                        <span id="modal-data" style="color: #888; font-size: 0.8rem;">Data</span>
+                    </div>
+                    <p id="modal-desc" style="font-size: 1.1rem; color: #333; margin-bottom: 20px;"></p>
+
+                    <a id="modal-btn-link" href="#" target="_blank"
+                        style="display: none; background: #007bff; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px; text-align: center; display: block;">
+                        🔗 Acessar Link
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-museu" class="page-content">
+            <div style="text-align: center; margin-bottom: 40px;">
+                <h1 style="color: #d81b60; font-family: 'Georgia', serif; font-style: italic; font-size: 3rem;">Museu do
+                    Amor 🏛️</h1>
+                <p style="color: #666;">Nossas relíquias e momentos eternos.</p>
+
+                <button id="btn-add-museu"
+                    style="margin-top: 20px; background: #333; color: #d81b60; border: 1px solid #d81b60; padding: 10px 30px; border-radius: 5px; cursor: pointer;">
+                    + Adicionar Relíquia
+                </button>
+            </div>
+
+            <form id="form-museu"
+                style="display: none; background: #fff; border: 4px double #d81b60; padding: 30px; max-width: 500px; margin: 0 auto 50px auto; box-shadow: 10px 10px 0px rgba(0,0,0,0.1);">
+                <h3 style="text-align: center; color: #333;">Catalogar Nova Peça</h3>
+
+                <div class="form-group">
+                    <label>Título do Marco:</label>
+                    <input type="text" id="museu-titulo" placeholder="Ex: O Pedido de Namoro" required
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc;">
+                </div>
+
+                <div class="form-group">
+                    <label>Data do Acontecimento:</label>
+                    <input type="date" id="museu-data" required
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc;">
+                </div>
+
+                <div class="form-group">
+                    <label>Foto/Objeto (Opcional):</label>
+                    <input type="file" id="museu-arquivo" style="width: 100%;">
+                </div>
+
+                <div class="form-group">
+                    <label>A História por trás disso:</label>
+                    <textarea id="museu-desc" rows="4"
+                        style="width: 100%; padding: 10px; border: 1px solid #ccc;"></textarea>
+                </div>
+
+                <button type="submit" id="btn-salvar-museu"
+                    style="background: #d81b60; color: white; width: 100%; padding: 12px; border: none; font-size: 1.1rem; cursor: pointer;">Eternizar
+                    Momento</button>
+            </form>
+
+            <div id="timeline-container" class="timeline">
+            </div>
+        </div>
+        <div id="modal-museu"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+            <div
+                style="background: white; max-width: 600px; width: 100%; border-radius: 15px; overflow: hidden; position: relative; max-height: 90vh; display: flex; flex-direction: column;">
+
+                <button onclick="fecharModalMuseu()"
+                    style="position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.5); color: white; border: none; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; z-index: 20; font-size: 1.2rem;">&times;</button>
+
+                <div id="modal-museu-actions"
+                    style="position: absolute; top: 10px; left: 10px; z-index: 20; display: flex; gap: 10px;">
+                    <button id="btn-modal-editar"
+                        style="background: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"
+                        title="Editar">✏️</button>
+                    <button id="btn-modal-apagar"
+                        style="background: white; border: none; border-radius: 50%; width: 35px; height: 35px; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.3);"
+                        title="Apagar">🗑️</button>
+                </div>
+
+                <div id="modal-museu-img-area" style="background: #000; display: none; justify-content: center;">
+                    <img id="modal-museu-img" src="" style="max-height: 50vh; max-width: 100%; object-fit: contain;">
+                </div>
+
+                <div style="padding: 25px; overflow-y: auto;">
+                    <span id="modal-museu-data"
+                        style="background: #f8bbd0; color: #d81b60; padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;">Data</span>
+                    <h2 id="modal-museu-titulo" style="color: #d81b60; margin: 15px 0 10px 0;">Título</h2>
+                    <div id="modal-museu-desc" style="color: #444; line-height: 1.6; white-space: pre-wrap;"></div>
+                    <p id="modal-museu-autor"
+                        style="margin-top: 20px; text-align: right; color: #999; font-size: 0.8rem; font-style: italic;">
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div id="page-constelacoes" class="page-content"
+            style="position: relative; overflow: hidden; min-height: 100vh; background: radial-gradient(ellipse at bottom, #1b2735 0%, #090a0f 100%);">
+
+            <div id="ceu-fundo" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1;">
+            </div>
+
+            <div style="position: relative; z-index: 10; text-align: center; padding-top: 40px; pointer-events: none;">
+                <h1 style="color: #fff; text-shadow: 0 0 10px #fff, 0 0 20px #d81b60; font-family: 'Georgia', serif;">
+                    Nossas Constelações ✨</h1>
+                <p style="color: #b3e5fc;">O céu estava assim quando tudo mudou...</p>
+
+                <button id="btn-add-constelacao"
+                    style="margin-top: 20px; background: rgba(255,255,255,0.1); color: #fff; border: 1px solid #fff; padding: 10px 30px; border-radius: 30px; cursor: pointer; backdrop-filter: blur(5px);">
+                    + Adicionar Mapa Estelar
+                </button>
+
+                <form id="form-constelacao"
+                    style="display: none; background: rgba(20, 20, 30, 0.95); border: 1px solid #d81b60; padding: 30px; max-width: 500px; margin: 20px auto; border-radius: 15px; box-shadow: 0 0 20px rgba(216, 27, 96, 0.5);">
+                    <h3 style="color: #fff;">Novo Mapa Estelar</h3>
+
+                    <input type="text" id="const-titulo" placeholder="Título (Ex: O Primeiro Beijo)" required
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: #333; border: none; color: white;">
+
+                    <input type="date" id="const-data" required
+                        style="width: 100%; padding: 10px; margin-bottom: 10px; background: #333; border: none; color: white;">
+
+                    <label style="color: #ccc; display:block; text-align:left;">Imagem do Mapa:</label>
+                    <input type="file" id="const-arquivo" required
+                        style="width: 100%; margin-bottom: 10px; color: white;">
+
+                    <textarea id="const-desc" rows="3" placeholder="O que você sentiu nesse dia?"
+                        style="width: 100%; padding: 10px; background: #333; border: none; color: white; margin-bottom: 10px;"></textarea>
+
+                    <button type="submit" id="btn-salvar-const"
+                        style="background: #d81b60; color: white; width: 100%; padding: 10px; border: none; cursor: pointer; border-radius: 5px;">Criar
+                        Constelação</button>
+                </form>
+
+                <div id="grid-constelacoes"
+                    style="display: flex; flex-wrap: wrap; justify-content: center; gap: 40px; padding: 40px;">
+                </div>
+            </div>
+        </div>
+
+        <div id="modal-constelacao"
+            style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 10000; align-items: center; justify-content: center; padding: 20px;">
+            <div
+                style="background: #1b2735; color: white; max-width: 500px; width: 100%; border-radius: 50% 50% 10px 10px; border: 2px solid #d81b60; overflow: hidden; position: relative; text-align: center; box-shadow: 0 0 50px rgba(216, 27, 96, 0.3);">
+
+                <button onclick="fecharModalConstelacao()" style="position: absolute; top: 15px; right: 20px; background: none; color: white; border: none; font-size: 2rem; cursor: pointer; z-index: 50;">&times;</button>
+
+                <button id="btn-apagar-const"
+                    style="position: absolute; top: 20px; left: 20px; background: none; border: none; font-size: 1.2rem; cursor: pointer;"
+                    title="Apagar">🗑️</button>
+
+                <div style="padding: 40px 20px 20px;">
+                    <img id="modal-const-img" src=""
+                        style="width: 250px; height: 250px; border-radius: 50%; object-fit: cover; border: 4px solid #fff; box-shadow: 0 0 30px rgba(255,255,255,0.2);">
+
+                    <h2 id="modal-const-titulo"
+                        style="margin-top: 20px; color: #f8bbd0; font-family: 'Georgia', serif;">Título</h2>
+                    <span id="modal-const-data"
+                        style="font-size: 0.9rem; color: #888; display: block; margin-bottom: 15px;">Data</span>
+
+                    <p id="modal-const-desc" style="color: #ddd; line-height: 1.5; font-style: italic;"></p>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </div>
+    <div id="page-em-breve" class="page-content" style="text-align: center; padding-top: 100px;">
+        <h1 id="titulo-em-breve"
+            style="color: #d81b60; font-size: 2.5rem; margin-bottom: 20px; text-shadow: 1px 1px 2px white;">
+            Em Breve...
+        </h1>
+        <div style="font-size: 5rem;">🚧❤️🚧</div>
+        <p style="font-size: 1.5rem; color: #fff; text-shadow: 1px 1px 2px black; margin-top: 20px;">
+            Estou preparando algo especial aqui para nós!
+        </p>
+        <p style="color: #eee;">Logo, logo essa parte do nosso cantinho estará pronta.</p>
+
+        <button onclick="navegarPara('home')"
+            style="margin-top: 40px; background: #d81b60; color: white; border: none; padding: 15px 30px; border-radius: 30px; cursor: pointer; font-size: 1.2rem; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+            Voltar para o Início
+        </button>
+    </div>
+
+<div id="mini-player" class="mini-player-container">
+    <div class="mini-progress-bar" id="mini-progress"></div>
+
+    <div class="mini-content">
+        <div class="mini-info" onclick="abrirPlayerFull()">
+            <img id="mini-cover" src="imgs/cd.png" alt="Capa">
+            <div class="mini-text">
+                <h4 id="mini-title">Escolha uma música</h4>
+                <p id="mini-artist">Nosso Cantinho</p>
+            </div>
+        </div>
+
+        <div class="mini-controls">
+            <button onclick="antSong()" class="btn-icon">
+                <svg viewBox="0 0 16 16"><path d="M3.3 1a.7.7 0 0 1 .7.7v5.15l9.95-5.744a.7.7 0 0 1 1.05.606v12.575a.7.7 0 0 1-1.05.607L4 9.149V14.3a.7.7 0 0 1-.7.7H1.7a.7.7 0 0 1-.7-.7V1.7a.7.7 0 0 1 .7-.7z"/></svg>
+            </button>
+            <button id="mini-play-btn" onclick="togglePlay()" class="btn-icon btn-play-circle">
+                <svg id="mini-icon-play" viewBox="0 0 16 16"><path d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288z"/></svg>
+                <svg id="mini-icon-pause" viewBox="0 0 16 16" style="display:none;"><path d="M2.7 1a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7H2.7zm8 0a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7h-2.6z"/></svg>
+            </button>
+            <button onclick="proxSong()" class="btn-icon">
+                <svg viewBox="0 0 16 16"><path d="M12.7 1a.7.7 0 0 0-.7.7v5.15L2.05 1.107A.7.7 0 0 0 1 1.712v12.575a.7.7 0 0 0 1.05.607L12 9.149V14.3a.7.7 0 0 0 .7.7h1.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7z"/></svg>
+            </button>
+        </div>
+
+        <div class="mini-extra">
+            <div class="volume-container">
+                <svg class="btn-icon-small" viewBox="0 0 16 16"><path d="M9.741.85a.75.75 0 0 1 .375.65v13a.75.75 0 0 1-1.125.65l-6.925-4a3.64 3.64 0 0 1-1.33-4.967 3.64 3.64 0 0 1 1.33-1.332l6.925-4a.75.75 0 0 1 .75 0zm-6.924 5.3a2.14 2.14 0 0 0 0 3.7l5.8 3.35V2.8zm8.683 4.29V5.56a2.75 2.75 0 0 1 0 4.88M11.5 13.614a5.752 5.752 0 0 0 0-11.228v1.55a4.252 4.252 0 0 1 0 8.127z"/></svg>
+                <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="1">
+            </div>
+            <button onclick="abrirPlayerFull()" class="btn-icon">
+               <svg viewBox="0 0 16 16"><path d="M16 2.45c0-.8-.65-1.45-1.45-1.45H1.45C.65 1 0 1.65 0 2.45v11.1C0 14.35.65 15 1.45 15h5.557v-1.5H1.5v-11h13V7H16z"/><path d="M15.25 9.007a.75.75 0 0 1 .75.75v4.493a.75.75 0 0 1-.75.75H9.325a.75.75 0 0 1-.75-.75V9.757a.75.75 0 0 1 .75-.75z"/></svg>
+            </button>
+        </div>
+    </div>
+    <canvas id="mini-visualizer"></canvas>
+</div>
+
+<div id="full-player" class="full-player-modal">
+    <div id="dynamic-bg" class="absolute-bg"></div>
+    <canvas id="full-visualizer"></canvas>
+
+    <div class="full-player-content">
+        <div class="fp-header">
+            <button onclick="fecharPlayerFull()" class="btn-icon">
+                <svg viewBox="0 0 16 16"><path d="M2.47 2.47a.75.75 0 0 1 1.06 0L8 6.94l4.47-4.47a.75.75 0 1 1 1.06 1.06L9.06 8l4.47 4.47a.75.75 0 1 1-1.06 1.06L8 9.06l-4.47 4.47a.75.75 0 0 1-1.06-1.06L6.94 8 2.47 3.53a.75.75 0 0 1 0-1.06"/></svg>
+            </button>
+            <span>Tocando Agora</span>
+            <button id="btn-search" onclick="toggleSearch()" class="btn-icon">
+                <svg viewBox="0 0 16 16"><path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.1zM12 6.5a5.5 5.5 0 1 1-11 0 5.5 5.5 0 0 1 11 0z"/></svg>
+            </button>
+        </div>
+
+        <div class="fp-main">
+            <div class="cd-wrapper">
+                <img id="full-cover" src="imgs/cd.png" crossorigin="anonymous">
+            </div>
+            <div id="area-dedicatoria" class="dedicatoria-box" style="display:none;">
+                <p id="texto-dedicatoria"></p>
+                <small id="autor-dedicatoria"></small>
+            </div>
+            <div class="fp-info">
+                <h2 id="full-title">Título</h2>
+                <h3 id="full-artist">Artista</h3>
+            </div>
+        </div>
+
+        <div class="fp-controls-area">
+            <div class="progress-area" id="full-progress-container">
+                <div class="progress-bar" id="full-progress"></div>
+            </div>
+            <div class="time-info">
+                <span id="curr-time">0:00</span>
+                <span id="total-dur">0:00</span>
+            </div>
+
+            <div class="main-buttons">
+                <button onclick="toggleShuffle()" class="btn-icon" id="btn-shuffle">
+                    <svg viewBox="0 0 16 16"><path d="M13.151.922a.75.75 0 1 0-1.06 1.06L13.109 3H11.16a3.75 3.75 0 0 0-2.873 1.34l-6.173 7.356A2.25 2.25 0 0 1 .39 12.5H0V14h.391a3.75 3.75 0 0 0 2.873-1.34l6.173-7.356a2.25 2.25 0 0 1 1.724-.804h1.947l-1.017 1.018a.75.75 0 0 0 1.06 1.06L15.98 3.75zM.391 3.5H0V2h.391c1.109 0 2.16.49 2.873 1.34L4.89 5.277l-.979 1.167-1.796-2.14A2.25 2.25 0 0 0 .39 3.5z"/></svg>
+                </button>
+                <button onclick="antSong()" class="btn-icon">
+                    <svg viewBox="0 0 16 16"><path d="M3.3 1a.7.7 0 0 1 .7.7v5.15l9.95-5.744a.7.7 0 0 1 1.05.606v12.575a.7.7 0 0 1-1.05.607L4 9.149V14.3a.7.7 0 0 1-.7.7H1.7a.7.7 0 0 1-.7-.7V1.7a.7.7 0 0 1 .7-.7z"/></svg>
+                </button>
+                <button id="full-play-btn" onclick="togglePlay()" class="btn-icon btn-play-big">
+                    <svg id="full-icon-play" viewBox="0 0 16 16"><path d="M3 1.713a.7.7 0 0 1 1.05-.607l10.89 6.288a.7.7 0 0 1 0 1.212L4.05 14.894A.7.7 0 0 1 3 14.288z"/></svg>
+                    <svg id="full-icon-pause" viewBox="0 0 16 16" style="display:none;"><path d="M2.7 1a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7H2.7zm8 0a.7.7 0 0 0-.7.7v12.6a.7.7 0 0 0 .7.7h2.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7h-2.6z"/></svg>
+                </button>
+                <button onclick="proxSong()" class="btn-icon">
+                    <svg viewBox="0 0 16 16"><path d="M12.7 1a.7.7 0 0 0-.7.7v5.15L2.05 1.107A.7.7 0 0 0 1 1.712v12.575a.7.7 0 0 0 1.05.607L12 9.149V14.3a.7.7 0 0 0 .7.7h1.6a.7.7 0 0 0 .7-.7V1.7a.7.7 0 0 0-.7-.7z"/></svg>
+                </button>
+                <button onclick="toggleRepeat()" class="btn-icon" id="btn-repeat">
+                    <svg viewBox="0 0 16 16"><path d="M0 4.75A3.75 3.75 0 0 1 3.75 1h8.5A3.75 3.75 0 0 1 16 4.75v5a3.75 3.75 0 0 1-3.75 3.75H9.81l1.018 1.018a.75.75 0 1 1-1.06 1.06L6.939 12.75l2.829-2.828a.75.75 0 1 1 1.06 1.06L9.811 12h2.439a2.25 2.25 0 0 0 2.25-2.25v-5a2.25 2.25 0 0 0-2.25-2.25h-8.5A2.25 2.25 0 0 0 1.5 4.75v5A2.25 2.25 0 0 0 3.75 12H5v1.5H3.75A3.75 3.75 0 0 1 0 9.75z"/></svg>
+                    <div class="dot-indicator"></div> 
+                </button>
+            </div>
+            
+            <div class="bottom-actions">
+                <button onclick="toggleLyrics()" class="btn-icon" id="btn-lyrics">
+                   <svg viewBox="0 0 16 16"><path d="M13.426 2.574a2.831 2.831 0 0 0-4.797 1.55l3.247 3.247a2.831 2.831 0 0 0 1.55-4.797M10.5 8.118l-2.619-2.62L4.74 9.075 2.065 12.12a1.287 1.287 0 0 0 1.816 1.816l3.06-2.688 3.56-3.129zM7.12 4.094a4.331 4.331 0 1 1 4.786 4.786l-3.974 3.493-3.06 2.689a2.787 2.787 0 0 1-3.933-3.933l2.676-3.045z"/></svg>
+                </button>
+
+                <div class="full-vol-container">
+                    <svg viewBox="0 0 16 16"><path d="M9.741.85a.75.75 0 0 1 .375.65v13a.75.75 0 0 1-1.125.65l-6.925-4a3.64 3.64 0 0 1-1.33-4.967 3.64 3.64 0 0 1 1.33-1.332l6.925-4a.75.75 0 0 1 .75 0zm-6.924 5.3a2.14 2.14 0 0 0 0 3.7l5.8 3.35V2.8zm8.683 4.29V5.56a2.75 2.75 0 0 1 0 4.88M11.5 13.614a5.752 5.752 0 0 0 0-11.228v1.55a4.252 4.252 0 0 1 0 8.127z"/></svg>
+                    <input type="range" id="volume-slider-full" min="0" max="1" step="0.1" value="1">
+                </div>
+
+                <button onclick="toggleFila()" class="btn-icon" id="btn-fila">
+                    <svg viewBox="0 0 16 16"><path d="M15 15H1v-1.5h14zm0-4.5H1V9h14zm-14-7A2.5 2.5 0 0 1 3.5 1h9a2.5 2.5 0 0 1 0 5h-9A2.5 2.5 0 0 1 1 3.5m2.5-1a1 1 0 0 0 0 2h9a1 1 0 1 0 0-2z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="queue-panel" class="side-panel">
+        <button class="btn-close-panel" onclick="toggleFila()">&times;</button>
+        <h3>Sua Playlist & Descobertas</h3>
+        
+        <div class="queue-controls" style="margin-bottom: 20px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; gap: 10px;">
+                <button onclick="document.getElementById('music-upload').click()" class="btn-upload-music">
+                    ☁️ Enviar Música (MP3)
+                </button>
+                <input type="file" id="music-upload" accept="audio/*" style="display: none;" onchange="fazerUploadMusica()">
+            </div>
+            <div class="search-box-player">
+                <input type="text" id="itunes-search" placeholder="Buscar nova música (iTunes)..." onkeyup="buscarMusicaOnline(this.value)">
+                <div id="search-loading" style="display:none;">⏳</div>
+            </div>
+        </div>
+
+        <div id="search-results-list" style="display: none; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px;">
+            <h4 style="color: #aaa; font-size: 0.8rem; margin-bottom: 10px;">RESULTADOS DA BUSCA (Clique para adicionar)</h4>
+            <ul id="itunes-list"></ul>
+        </div>
+
+        <h4 style="color: #d81b60; font-size: 0.9rem; margin-bottom: 10px;">NA FILA</h4>
+        <ul id="queue-list"></ul>
+    </div>
+
+    <div id="lyrics-panel" class="side-panel right-panel">
+        <button class="btn-close-panel" onclick="toggleLyrics()">&times;</button>
+        <h3>Letra</h3><div id="lyrics-content" contenteditable="true"></div>
+        
+        <button onclick="salvarLetra()" class="btn-save-lyrics">Salvar Letra</button>
+        <hr><h3>Dedicatória</h3>
+        <textarea id="input-dedicatoria"></textarea>
+        <button onclick="salvarDedicatoria()" class="btn-save-lyrics">Salvar Dedicatória</button>
+    </div>
+</div>
+
+<script src="js/app.js"></script> 
+
+<script src="js/player.js"></script>
+
+<script src="js/home.js"></script>
+<script src="js/galeria.js"></script>
+<script src="js/lembrei.js"></script>
+<script src="js/museu.js"></script>
+<script src="js/constelacoes.js"></script>
+</body>
+
+</html>

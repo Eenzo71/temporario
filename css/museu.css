@@ -1,0 +1,131 @@
+/* LINHA DO TEMPO (MUSEU) */
+.timeline {
+    position: relative;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+/* A linha vertical central */
+.timeline::after {
+    content: '';
+    position: absolute;
+    width: 4px;
+    background-color: #d81b60;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    margin-left: -2px;
+    border-radius: 2px;
+}
+
+/* O cartão do evento */
+.timeline-item {
+    padding: 10px 40px;
+    position: relative;
+    background-color: inherit;
+    width: 50%;
+    box-sizing: border-box;
+}
+
+/* Bolinha na linha */
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    right: -10px;
+    background-color: white;
+    border: 4px solid #d81b60;
+    top: 15px;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+/* Esquerda */
+.left {
+    left: 0;
+    text-align: right; /* Texto alinhado à linha */
+}
+
+/* Direita */
+.right {
+    left: 50%;
+    text-align: left;
+}
+
+.right::after {
+    left: -10px;
+}
+
+/* Conteúdo dentro do cartão */
+.content {
+    padding: 20px;
+    background-color: white;
+    position: relative;
+    border-radius: 6px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    border: 1px solid #fce4ec;
+}
+
+.content h2 {
+    color: #d81b60;
+    font-size: 1.2rem;
+    margin-top: 0;
+}
+
+.content .date {
+    font-weight: bold;
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    display: block;
+}
+
+.museu-img {
+    width: 100%;
+    border-radius: 5px;
+    margin-top: 10px;
+    border: 5px solid #fff;
+    box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+/* Responsividade para Celular (Linha vai pra esquerda) */
+@media screen and (max-width: 600px) {
+    .timeline::after { left: 31px; }
+    .timeline-item { width: 100%; padding-left: 70px; padding-right: 25px; }
+    .timeline-item::after { left: 21px; }
+    .left::after { left: 21px; }
+    .right { left: 0%; }
+    .left { text-align: left; }
+}
+
+/* Botões de Ação do Museu (Editar/Apagar) */
+.museu-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 5px;
+    opacity: 0.6; /* Fica meio transparente pra não atrapalhar */
+    transition: opacity 0.2s;
+}
+
+.content:hover .museu-actions {
+    opacity: 1; /* Aparece bem quando passa o mouse */
+}
+
+.btn-mini-action {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 2px 6px;
+}
+
+.btn-mini-action:hover {
+    background: #d81b60;
+    color: white;
+    border-color: #d81b60;
+}

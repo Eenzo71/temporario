@@ -143,6 +143,32 @@ function adicionarNaFila(track) {
 }
 
 
+function atualizarFilaVisual() {
+    const lista = document.getElementById('queue-list');
+    if (!lista) return;
+    lista.innerHTML = '';
+    
+    filaReproducao.forEach((musica, index) => {
+        const li = document.createElement('li');
+        li.id = `queue-item-${index}`;
+        
+        // Destaca a música que está tocando
+        if (index === indiceAtual) li.classList.add('playing');
+        
+        li.innerHTML = `
+            <img src="${musica.capa}" alt="Capa">
+            <div style="display:flex; flex-direction:column;">
+                <span style="color:white; font-size:0.9rem; font-weight:bold;">${musica.titulo}</span>
+                <span style="color:#aaa; font-size:0.7rem;">${musica.artista}</span>
+            </div>
+        `;
+        
+        // Ao clicar na lista, toca a música
+        li.onclick = () => carregarMusica(index);
+        lista.appendChild(li);
+    });
+}
+
 // =================================================================
 // 2. CORE PLAYER
 // =================================================================

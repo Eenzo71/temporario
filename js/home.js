@@ -1,98 +1,93 @@
-// --- VARIÁVEIS GLOBAIS DA HOME ---
+import { supabase } from './supabaseClient.js';
+
 let historiaSendoEditada = null;
 
-// --- CARREGAR HISTÓRIA (Leitura do Banco) ---
-async function carregarHistoria() {
-    // Busca na tabela 'historias'
+// PRECISA TER A PALAVRA "export" ANTES DE FUNCTION
+export async function carregarHistoria() {
     const { data, error } = await supabase.from('historias').select('*');
-    
     if (error) {
         console.error("Erro ao carregar história:", error);
         return;
     }
-
-    // Preenche as caixas de texto (Geral, Enzo e Brenda)
-    data.forEach(item => {
-        const div = document.getElementById(`content-${item.usuario}`);
-        if (div) div.innerHTML = item.conteudo;
-    });
+    if(data) {
+        data.forEach(item => {
+            const div = document.getElementById(`content-${item.usuario}`);
+            if (div) div.innerHTML = item.conteudo;
+        });
+    }
+    setupHomeEvents();
 }
 
-// --- MODO DE EDIÇÃO (Clicou no Lápis) ---
+function setupHomeEvents() {
+    document.querySelectorAll('.btn-edit-pencil').forEach(btn => {
+        const novoBtn = btn.cloneNode(true);
+        btn.parentNode.replaceChild(novoBtn, btn);
+        novoBtn.addEventListener('click', () => {
+            const usuario = novoBtn.getAttribute('onclick')?.match(/'([^']+)'/)[1] || 'nos'; 
+            editarHistoria(usuario);
+        });
+    });
+
+    const btnSalvar = document.querySelector('.btn-save-toolbar');
+    const btnCancelar = document.querySelector('.btn-cancel-toolbar');
+    
+    if(btnSalvar) {
+        const novoSalvar = btnSalvar.cloneNode(true);
+        btnSalvar.parentNode.replaceChild(novoSalvar, btnSalvar);
+        novoSalvar.addEventListener('click', salvarEdicaoAtual);
+    }
+    if(btnCancelar) {
+        const novoCancelar = btnCancelar.cloneNode(true);
+        btnCancelar.parentNode.replaceChild(novoCancelar, btnCancelar);
+        novoCancelar.addEventListener('click', cancelarEdicao);
+    }
+}
+
 function editarHistoria(usuario) {
-    // Mostra a barra de ferramentas
     const toolbar = document.getElementById('toolbar-geral');
     if (toolbar) toolbar.style.display = 'flex';
-    
     historiaSendoEditada = usuario;
-    
-    // Torna a div editável
     const divAlvo = document.getElementById(`content-${usuario}`);
     if (divAlvo) {
         divAlvo.contentEditable = true;
-        divAlvo.classList.add('editing'); // Adiciona estilo visual
+        divAlvo.classList.add('editing');
         divAlvo.focus();
     }
-    
-    // Esconde os lápis para não editar dois ao mesmo tempo
     document.querySelectorAll('.btn-edit-pencil').forEach(btn => btn.style.display = 'none');
 }
 
-// --- FORMATAÇÃO DE TEXTO (Negrito, Itálico, Cor...) ---
-function formatar(comando, valor = null) {
-    // Executa o comando do navegador
-    document.execCommand(comando, false, valor);
-    
-    // Mantém o foco na caixa de texto
-    const divAlvo = document.getElementById(`content-${historiaSendoEditada}`);
-    if(divAlvo) divAlvo.focus();
-}
-
-// --- SALVAR NO SUPABASE ---
 async function salvarEdicaoAtual() {
     if (!historiaSendoEditada) return;
-    
     const divAlvo = document.getElementById(`content-${historiaSendoEditada}`);
     const novoConteudo = divAlvo.innerHTML;
     const btnSalvar = document.querySelector('.btn-save-toolbar');
-    
-    // Feedback visual no botão
     if(btnSalvar) btnSalvar.innerText = 'Salvando...';
 
-    // Atualiza no banco de dados
     const { error } = await supabase
         .from('historias')
         .update({ conteudo: novoConteudo })
         .eq('usuario', historiaSendoEditada);
 
-    if (error) {
-        alert('Erro ao salvar: ' + error.message);
-    } else {
-        // Sucesso!
-        alert('Salvo com sucesso! ❤️');
-        cancelarEdicao();
-    }
-    
+    if (error) alert('Erro: ' + error.message);
+    else { alert('Salvo!'); cancelarEdicao(); }
     if(btnSalvar) btnSalvar.innerText = '💾 Salvar';
 }
 
-// --- CANCELAR / SAIR DA EDIÇÃO ---
 function cancelarEdicao() {
-    // Esconde a barra
     const toolbar = document.getElementById('toolbar-geral');
     if (toolbar) toolbar.style.display = 'none';
-    
     const divAlvo = document.getElementById(`content-${historiaSendoEditada}`);
     if (divAlvo) {
         divAlvo.contentEditable = false;
         divAlvo.classList.remove('editing');
-        
-        // Recarrega o conteúdo original para desfazer alterações não salvas
         carregarHistoria();
     }
-    
     historiaSendoEditada = null;
-    
-    // Mostra os lápis de novo
     document.querySelectorAll('.btn-edit-pencil').forEach(btn => btn.style.display = 'inline-block');
 }
+
+window.formatar = function(comando, valor = null) {
+    document.execCommand(comando, false, valor);
+    const divAlvo = document.getElementById(`content-${historiaSendoEditada}`);
+    if(divAlvo) divAlvo.focus();
+};

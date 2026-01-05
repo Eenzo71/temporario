@@ -1,5 +1,7 @@
+import { supabase } from './supabaseClient.js';
+
 // --- CARREGAR GALERIA (Exibir as fotos) ---
-async function carregarGaleria() {
+export async function carregarGaleria() {
     const grid = document.getElementById('photo-grid');
     
     // Proteção: Se não achar o grid (estiver em outra pág), para aqui.
@@ -20,7 +22,7 @@ async function carregarGaleria() {
     } else {
         grid.innerHTML = ''; // Limpa o texto de carregamento
         
-        if (data.length === 0) {
+        if (!data || data.length === 0) {
             grid.innerHTML = '<p style="text-align:center;">Nenhuma foto ainda. Adicione a primeira! ❤️</p>';
             return;
         }
@@ -41,91 +43,91 @@ async function carregarGaleria() {
     }
 }
 
-// Função auxiliar simples para formatar a data (opcional, mas fica bonito)
+// Função auxiliar simples para formatar a data
 function formatarData(dataString) {
     if (!dataString) return '';
     const data = new Date(dataString);
     return data.toLocaleDateString('pt-BR');
 }
 
+// --- CONFIGURAÇÃO DE EVENTOS (Botões e Formulário) ---
+// Essa função será chamada pelo router.js sempre que entrar na página 'galeria'
+export function setupGaleria() {
+    const toggleBtn = document.getElementById('toggle-upload-form-btn');
+    const uploadForm = document.getElementById('upload-form');
 
-// --- INTERAÇÕES DO FORMULÁRIO (Botões e Upload) ---
+    if (toggleBtn && uploadForm) {
+        const novoBtn = toggleBtn.cloneNode(true);
+        toggleBtn.parentNode.replaceChild(novoBtn, toggleBtn);
 
-// 1. Botão de "Adicionar Nova Foto" (Abre/Fecha o form)
-const toggleBtn = document.getElementById('toggle-upload-form-btn');
-const uploadForm = document.getElementById('upload-form');
+        novoBtn.addEventListener('click', () => {
+            const isVisible = uploadForm.style.display === 'block';
+            uploadForm.style.display = isVisible ? 'none' : 'block';
+            novoBtn.textContent = isVisible ? 'Adicionar Nova Foto +' : 'Cancelar X';
+        });
+    }
 
-if (toggleBtn && uploadForm) {
-    toggleBtn.addEventListener('click', () => {
-        const isVisible = uploadForm.style.display === 'block';
-        uploadForm.style.display = isVisible ? 'none' : 'block';
-        // Muda o texto do botão
-        toggleBtn.textContent = isVisible ? 'Adicionar Nova Foto +' : 'Cancelar X';
-    });
-}
+    if (uploadForm) {
+        const novoForm = uploadForm.cloneNode(true);
+        uploadForm.parentNode.replaceChild(novoForm, uploadForm);
 
-// 2. Enviar a Foto (Submit)
-if (uploadForm) {
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault(); // Impede a página de recarregar
-        
-        const fileInput = document.getElementById('upload-file');
-        const arquivo = fileInput.files[0];
-        const btnSalvar = document.getElementById('btn-salvar-foto');
+        novoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('upload-file');
+            const arquivo = fileInput.files[0];
+            const btnSalvar = document.getElementById('btn-salvar-foto');
+            
+            if (!arquivo) return alert("Selecione uma foto!");
 
-        // Validação simples
-        if (!arquivo) return alert("Selecione uma foto!");
+            try {
+                const textoOriginal = btnSalvar.textContent;
+                btnSalvar.textContent = "Enviando...";
+                btnSalvar.disabled = true;
 
-        try {
-            // Feedback visual no botão
-            btnSalvar.textContent = "Enviando...";
-            btnSalvar.disabled = true;
+                const nomeLimpo = arquivo.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_");
+                const nomeArquivo = `galeria/${Date.now()}_${nomeLimpo}`;
 
-            // A. Preparar nome do arquivo (remove acentos e espaços)
-            const nomeLimpo = arquivo.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_");
-            const nomeArquivo = `galeria/${Date.now()}_${nomeLimpo}`; // Pasta galeria/
+                const { data, error: uploadError } = await supabase.storage
+                    .from('album-casal')
+                    .upload(nomeArquivo, arquivo);
+                    
+                if (uploadError) throw uploadError;
 
-            // B. Upload da Imagem para o Storage
-            const { data, error: uploadError } = await supabase.storage
-                .from('album-casal')
-                .upload(nomeArquivo, arquivo);
+                const { data: { publicUrl } } = supabase.storage
+                    .from('album-casal')
+                    .getPublicUrl(nomeArquivo);
+
+                const { error: dbError } = await supabase.from('fotos').insert([{
+                    url_imagem: publicUrl,
+                    descricao: document.getElementById('upload-descricao').value,
+                    lugar: document.getElementById('upload-lugar').value,
+                    data_momento: document.getElementById('upload-data').value,
+                    periodo: 'indefinido'
+                }]);
+
+                if (dbError) throw dbError;
+
+                alert('Foto salva no nosso cantinho! ❤️');
                 
-            if (uploadError) throw uploadError;
+                novoForm.reset();
+                novoForm.style.display = 'none';
+                
+                const btnToggleAtual = document.getElementById('toggle-upload-form-btn');
+                if(btnToggleAtual) btnToggleAtual.textContent = 'Adicionar Nova Foto +';
+                
+                carregarGaleria();
 
-            // C. Pegar o Link Público
-            const { data: { publicUrl } } = supabase.storage
-                .from('album-casal')
-                .getPublicUrl(nomeArquivo);
-
-            // D. Salvar informações no Banco de Dados
-            const { error: dbError } = await supabase.from('fotos').insert([{
-                url_imagem: publicUrl,
-                descricao: document.getElementById('upload-descricao').value,
-                lugar: document.getElementById('upload-lugar').value,
-                data_momento: document.getElementById('upload-data').value,
-                periodo: 'indefinido' // Valor padrão
-            }]);
-
-            if (dbError) throw dbError;
-
-            // Sucesso!
-            alert('Foto salva no nosso cantinho! ❤️');
-            
-            // Limpa e esconde o form
-            uploadForm.reset();
-            uploadForm.style.display = 'none';
-            toggleBtn.textContent = 'Adicionar Nova Foto +';
-            
-            // Recarrega a galeria para mostrar a foto nova
-            carregarGaleria();
-
-        } catch (erro) {
-            console.error(erro);
-            alert('Erro ao salvar foto: ' + erro.message);
-        } finally {
-            // Restaura o botão
-            btnSalvar.textContent = "Salvar Foto";
-            btnSalvar.disabled = false;
-        }
-    });
-}   
+            } catch (erro) {
+                console.error(erro);
+                alert('Erro ao salvar foto: ' + erro.message);
+            } finally {
+                const btnSalvarAtual = document.getElementById('btn-salvar-foto');
+                if(btnSalvarAtual) {
+                    btnSalvarAtual.textContent = "Salvar Foto";
+                    btnSalvarAtual.disabled = false;
+                }
+            }
+        });
+    }
+}

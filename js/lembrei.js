@@ -1,5 +1,7 @@
+import { supabase } from './supabaseClient.js';
+
 // --- CARREGAR LEMBRETES (Mural) ---
-async function carregarLembretes() {
+export async function carregarLembretes() {
     const grid = document.getElementById('grid-lembretes');
     
     // Proteção se o elemento não existir
@@ -30,7 +32,7 @@ async function carregarLembretes() {
     data.forEach(item => {
         // Define cor e nome baseado no usuario salvo
         const isEnzo = (item.usuario === 'enzo');
-        const corBarra = isEnzo ? '#007bff' : '#d81b60'; // Azul pro Enzo, Rosa pra Brenda
+        const corBarra = isEnzo ? '#007bff' : '#d81b60';
         const nomeAutor = isEnzo ? 'Enzo' : 'Brenda';
         
         // Define o que mostrar no card (Miniatura)
@@ -45,7 +47,6 @@ async function carregarLembretes() {
         }
 
         const card = document.createElement('div');
-        // Estilo inline para garantir (mas idealmente estaria no CSS)
         card.style.cssText = "background: white; border-radius: 10px; overflow: hidden; cursor: pointer; transition: transform 0.2s; position: relative; box-shadow: 0 4px 6px rgba(0,0,0,0.1);";
         
         card.innerHTML = `
@@ -61,7 +62,7 @@ async function carregarLembretes() {
         // Clique abre o modal
         card.onclick = () => abrirModalLembrete(item);
         
-        // Efeito Hover simples via JS
+        // Efeito Hover
         card.onmouseover = () => card.style.transform = "scale(1.05)";
         card.onmouseout = () => card.style.transform = "scale(1)";
 
@@ -69,114 +70,7 @@ async function carregarLembretes() {
     });
 }
 
-// --- LÓGICA DO FORMULÁRIO (Adicionar Novo) ---
-
-const btnAddLembrete = document.getElementById('btn-add-lembrete');
-const formLembrete = document.getElementById('form-lembrete');
-const selectTipo = document.getElementById('lembrete-tipo');
-
-// 1. Alternar visualização do Form
-if (btnAddLembrete && formLembrete) {
-    btnAddLembrete.addEventListener('click', () => {
-        const isVisible = formLembrete.style.display === 'block';
-        formLembrete.style.display = isVisible ? 'none' : 'block';
-        btnAddLembrete.innerText = isVisible ? '+ Adicionar Novo' : 'Cancelar X';
-    });
-}
-
-// 2. Mudança no Select (Mostra campo de link se necessário)
-if (selectTipo) {
-    selectTipo.addEventListener('change', (e) => {
-        const tipo = e.target.value;
-        const campoLink = document.getElementById('campo-link');
-        const labelArquivo = document.getElementById('label-arquivo');
-        const msgCapa = document.getElementById('msg-capa-link');
-        
-        if (tipo === 'link') {
-            campoLink.style.display = 'block';
-            labelArquivo.innerText = "Capa do Link (Opcional):";
-            msgCapa.style.display = 'block';
-        } else {
-            campoLink.style.display = 'none';
-            labelArquivo.innerText = "Escolha o arquivo:";
-            msgCapa.style.display = 'none';
-        }
-    });
-}
-
-// 3. Enviar Lembrete (Submit)
-if (formLembrete) {
-    formLembrete.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const btn = document.getElementById('btn-salvar-lembrete');
-        const tipo = selectTipo.value;
-        const desc = document.getElementById('lembrete-desc').value;
-        const urlLink = document.getElementById('lembrete-url').value;
-        const arquivoInput = document.getElementById('lembrete-arquivo');
-        const arquivo = arquivoInput.files[0];
-
-        // Validações
-        if (tipo === 'link' && !urlLink) return alert("Cole o link!");
-        if ((tipo === 'foto' || tipo === 'video') && !arquivo) return alert("Selecione o arquivo!");
-
-        btn.innerText = "Enviando...";
-        btn.disabled = true;
-
-        try {
-            let conteudoUrl = null;
-            
-            // Upload do arquivo (se houver)
-            if (arquivo) {
-                // Nome limpo e único
-                const nomeLimpo = arquivo.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_");
-                const nomeArquivo = `lembretes/${Date.now()}_${nomeLimpo}`; // Pasta específica
-                
-                const { error: uploadError } = await supabase.storage.from('album-casal').upload(nomeArquivo, arquivo);
-                if (uploadError) throw uploadError;
-
-                const { data: { publicUrl } } = supabase.storage.from('album-casal').getPublicUrl(nomeArquivo);
-                conteudoUrl = publicUrl;
-            }
-
-            // Descobre quem é o usuário logado
-            const { data: { user } } = await supabase.auth.getUser();
-            // Lógica simples: se o email tem 'enzo', é o enzo. Senão é a brenda.
-            const usuarioNome = (user.email.includes('enzo')) ? 'enzo' : 'brenda'; 
-
-            // Salva no Banco
-            const { error: dbError } = await supabase.from('lembretes').insert([{
-                usuario: usuarioNome,
-                tipo: tipo,
-                conteudo_url: conteudoUrl,
-                link_destino: (tipo === 'link' ? urlLink : null),
-                descricao: desc
-            }]);
-
-            if (dbError) throw dbError;
-
-            alert("Postado com sucesso!");
-            
-            // Reset do form
-            formLembrete.reset();
-            formLembrete.style.display = 'none';
-            btnAddLembrete.innerText = '+ Adicionar Novo';
-            
-            // Recarrega o grid
-            carregarLembretes();
-
-        } catch (erro) {
-            console.error(erro);
-            alert("Erro: " + erro.message);
-        } finally {
-            btn.innerText = "Postar";
-            btn.disabled = false;
-        }
-    });
-}
-
-
-// --- MODAL DE VISUALIZAÇÃO ---
+// --- FUNÇÕES DE MODAL (Internas ao módulo) ---
 
 function abrirModalLembrete(item) {
     const modal = document.getElementById('modal-lembrete');
@@ -220,7 +114,133 @@ function fecharModalLembrete() {
     const modal = document.getElementById('modal-lembrete');
     if (modal) modal.style.display = 'none';
     
-    // Limpa o conteúdo para parar vídeos tocando no fundo
     const areaVisual = document.getElementById('modal-conteudo-visual');
     if (areaVisual) areaVisual.innerHTML = '';
+}
+
+// --- SETUP DE EVENTOS (Exportado para o app.js) ---
+export function setupLembrei() {
+    const btnAddLembrete = document.getElementById('btn-add-lembrete');
+    const formLembrete = document.getElementById('form-lembrete');
+    const selectTipo = document.getElementById('lembrete-tipo');
+    
+    // 1. Botão Fechar Modal (Busca pelo botão dentro do modal)
+    // Assumindo que o botão de fechar é o primeiro button dentro do modal ou tem uma classe específica
+    const modal = document.getElementById('modal-lembrete');
+    if (modal) {
+        const btnFechar = modal.querySelector('button'); // O 'X'
+        if (btnFechar) {
+            // Remove listener antigo e adiciona novo
+            const novoBtnFechar = btnFechar.cloneNode(true);
+            btnFechar.parentNode.replaceChild(novoBtnFechar, btnFechar);
+            novoBtnFechar.addEventListener('click', fecharModalLembrete);
+        }
+    }
+
+    // 2. Botão Adicionar (Toggle Form)
+    if (btnAddLembrete && formLembrete) {
+        const novoBtn = btnAddLembrete.cloneNode(true);
+        btnAddLembrete.parentNode.replaceChild(novoBtn, btnAddLembrete);
+        
+        novoBtn.addEventListener('click', () => {
+            const isVisible = formLembrete.style.display === 'block';
+            formLembrete.style.display = isVisible ? 'none' : 'block';
+            novoBtn.innerText = isVisible ? '+ Adicionar Novo' : 'Cancelar X';
+        });
+    }
+
+    // 3. Select Tipo (Mudança dinâmica)
+    if (selectTipo) {
+        // O select não costuma ter cloneNode necessário a menos que recarregue a página sem refresh muitas vezes
+        // Mas por segurança, podemos só adicionar o evento se garantir que não duplica.
+        // Vamos usar a técnica de replace também.
+        const novoSelect = selectTipo.cloneNode(true);
+        selectTipo.parentNode.replaceChild(novoSelect, selectTipo);
+        
+        novoSelect.addEventListener('change', (e) => {
+            const tipo = e.target.value;
+            const campoLink = document.getElementById('campo-link');
+            const labelArquivo = document.getElementById('label-arquivo');
+            const msgCapa = document.getElementById('msg-capa-link');
+            
+            if (tipo === 'link') {
+                campoLink.style.display = 'block';
+                labelArquivo.innerText = "Capa do Link (Opcional):";
+                msgCapa.style.display = 'block';
+            } else {
+                campoLink.style.display = 'none';
+                labelArquivo.innerText = "Escolha o arquivo:";
+                msgCapa.style.display = 'none';
+            }
+        });
+    }
+
+    // 4. Form Submit
+    if (formLembrete) {
+        const novoForm = formLembrete.cloneNode(true);
+        formLembrete.parentNode.replaceChild(novoForm, formLembrete);
+
+        novoForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('btn-salvar-lembrete');
+            // Re-busca o select atualizado do DOM (pois foi clonado)
+            const tipo = document.getElementById('lembrete-tipo').value;
+            const desc = document.getElementById('lembrete-desc').value;
+            const urlLink = document.getElementById('lembrete-url').value;
+            const arquivoInput = document.getElementById('lembrete-arquivo');
+            const arquivo = arquivoInput.files[0];
+
+            if (tipo === 'link' && !urlLink) return alert("Cole o link!");
+            if ((tipo === 'foto' || tipo === 'video') && !arquivo) return alert("Selecione o arquivo!");
+
+            btn.innerText = "Enviando...";
+            btn.disabled = true;
+
+            try {
+                let conteudoUrl = null;
+                
+                if (arquivo) {
+                    const nomeLimpo = arquivo.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9._-]/g, "_");
+                    const nomeArquivo = `lembretes/${Date.now()}_${nomeLimpo}`;
+                    
+                    const { error: uploadError } = await supabase.storage.from('album-casal').upload(nomeArquivo, arquivo);
+                    if (uploadError) throw uploadError;
+
+                    const { data: { publicUrl } } = supabase.storage.from('album-casal').getPublicUrl(nomeArquivo);
+                    conteudoUrl = publicUrl;
+                }
+
+                const { data: { user } } = await supabase.auth.getUser();
+                const usuarioNome = (user.email.includes('enzo')) ? 'enzo' : 'brenda'; 
+
+                const { error: dbError } = await supabase.from('lembretes').insert([{
+                    usuario: usuarioNome,
+                    tipo: tipo,
+                    conteudo_url: conteudoUrl,
+                    link_destino: (tipo === 'link' ? urlLink : null),
+                    descricao: desc
+                }]);
+
+                if (dbError) throw dbError;
+
+                alert("Postado com sucesso!");
+                novoForm.reset();
+                novoForm.style.display = 'none';
+                
+                // Reseta botão toggle
+                const btnToggle = document.getElementById('btn-add-lembrete');
+                if(btnToggle) btnToggle.innerText = '+ Adicionar Novo';
+                
+                carregarLembretes();
+
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro: " + erro.message);
+            } finally {
+                btn.innerText = "Postar";
+                btn.disabled = false;
+            }
+        });
+    }
 }
